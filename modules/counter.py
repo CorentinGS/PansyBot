@@ -13,8 +13,8 @@ async def scheduler(bot):
         time = (now - new_date).microseconds
         await asyncio.sleep(time)
         await send_daily_embed(bot)
-        await get_winner(bot)
         await send_embed(bot)
+        await get_winner(bot)
 
 
 async def send_embed(bot):
