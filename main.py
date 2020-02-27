@@ -32,4 +32,4 @@ for file in os.listdir("modules"):
             traceback.print_exc()
 
 bot.load_extension("utils.essentials.errorhandler")
-bot.run(config.token, reconnect=True)
+bot.run("NjY5ODU1MTI0MTEzMzI2MDkx.Xil6-A.fK1at8-38Q1yQm2X1kc5iyO36pI", reconnect=True)
