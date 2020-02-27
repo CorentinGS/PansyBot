@@ -1,10 +1,10 @@
 import datetime
-import discord
 
+import discord
 from discord.ext import commands
-from utils.essentials import sql
+
 from utils.essentials import functions
-from utils.essentials.functions import func
+from utils.essentials import sql
 
 config = functions.get("utils/config.json")
 
@@ -15,7 +15,7 @@ class check(commands.Cog):
     async def is_owner(ctx):
         await ctx.message.delete()
         UID = str(ctx.author.id)
-        if sql.Entry_Check(UID, "id", "owners"):
+        if sql.entry_check(UID, "id", "owners"):
             file = open("./utils/logs/Admin.log","a")
             file.write("[{}]: Owner Access Granted to {} | CMD - {}\n".format(datetime.datetime.utcnow().strftime("%d/%m/%Y at %H:%M:%S (System Time)"), ctx.author.id, ctx.message.content))
             file.close()
@@ -29,7 +29,7 @@ class check(commands.Cog):
     async def is_admin(ctx):
         await ctx.message.delete()
         UID = str(ctx.author.id)
-        if sql.Entry_Check(UID, "id", "admins") or sql.Entry_Check(UID, "id", "owners"):
+        if sql.entry_check(UID, "id", "admins") or sql.entry_check(UID, "id", "owners"):
             file = open("./utils/logs/access.log","a")
             file.write("[{}]: Admin Access Granted to {} | CMD - {}\n".format(datetime.datetime.utcnow().strftime("%d/%m/%Y at %H:%M:%S (System Time)"), ctx.author.id, ctx.message.content))
             file.close()

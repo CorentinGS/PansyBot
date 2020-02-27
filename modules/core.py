@@ -1,16 +1,13 @@
-import os, traceback
-import discord
 import asyncio
 import datetime
-import mysql.connector
-
 from random import randint
-from discord import Spotify
-from discord.ext import commands, tasks
 
-from utils.essentials import sql
+import discord
+from discord import Spotify
+from discord.ext import commands
+
 from utils.essentials import functions
-from utils.essentials.checks import check
+from utils.essentials import sql
 from utils.essentials.functions import func
 
 config = functions.get("utils/config.json")
@@ -18,6 +15,7 @@ config = functions.get("utils/config.json")
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._cd = commands.CooldownMapping.from_cooldown(1.0, 5.0, commands.BucketType.user)
 
     @commands.command(no_pm=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -114,6 +112,25 @@ class Main(commands.Cog):
         people = format(len(guild.members), ",")
         watch = discord.Activity(type=discord.ActivityType.watching, name=f"over {people} people")
         await self.bot.change_presence(activity=watch)
+
+    @commands.Cog.listener(name="on_message")
+    async def on_message_counter(self, message):
+        user_roles = []
+        voice_chan: discord.VoiceChannel = message.guild.get_channel(662273922292776985)
+        daily: discord.TextChannel = discord.utils.get(message.guild.text_channels, position=voice_chan.position-1)
+        bucket = self._cd.get_bucket(message)
+        retry_after = bucket.update_rate_limit()
+        user_roles.append([role.id for role in message.author.roles])
+        if retry_after:
+            return
+        for role in [542298007765516298, 542297369698369546, 600837848169578516, 652732584299593759]:
+            if role in user_roles:
+                return
+        if message.channel.id == 542291426051096606:
+            sql.update_main_counter(message.author.id)
+        if message.channel.id == daily.id:
+            sql.update_cotd_counter(message.author.id)
+        sql.update_global_counter(message.author.id)
 
     @commands.Cog.listener(name="on_message")
     async def on_message_pingcheck(self, message):
@@ -249,7 +266,7 @@ class Main(commands.Cog):
 
     def has_applied(self, UID):
         UID = str(UID)
-        if sql.Entry_Check(UID, "userid", "applications"):
+        if sql.entry_check(UID, "userid", "applications"):
             return True
 
     def add_id(self, user):

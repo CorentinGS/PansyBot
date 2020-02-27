@@ -1,10 +1,11 @@
-import discord
 import random
 
-from utils.essentials import secrets
-from datetime import datetime
-from discord.utils import get
+import discord
 from discord.ext import tasks, commands
+from discord.utils import get
+
+from utils.essentials import secrets
+
 
 class bkgrnd(commands.Cog):
     def __init__(self, bot):
@@ -29,7 +30,7 @@ class bkgrnd(commands.Cog):
             previous = lastNumber[0].content
             try:
                 number = int(previous)
-                await counting.send(number+1)
+                await counting.send(number + 1)
             except Exception as e:
                 print(e)
 
@@ -58,7 +59,8 @@ class bkgrnd(commands.Cog):
                 return
             try:
                 responses = ["First", "Second"]
-                embed = discord.Embed(color=0x00ffff, description=f"**{random.choice(responses)} option!**\n\n{random.choice(secrets.wyrQuestions)}")
+                embed = discord.Embed(color=0x00ffff,
+                                      description=f"**{random.choice(responses)} option!**\n\n{random.choice(secrets.wyrQuestions)}")
                 first = get(guild.emojis, name="1_mal")
                 second = get(guild.emojis, name="2_mal")
                 msg = await wyr.send(embed=embed)
@@ -66,6 +68,7 @@ class bkgrnd(commands.Cog):
                 await msg.add_reaction(second)
             except Exception as e:
                 print(e)
+
 
 def setup(bot):
     bot.add_cog(bkgrnd(bot))
