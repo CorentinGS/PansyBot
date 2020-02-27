@@ -30,7 +30,7 @@ async def send_embed(bot):
         member = bot.get_user(user)
         points = sql.fetch_points(user)
         x += 1
-        desc = f"`{x}. `**Points:**{points}{member.name}#{member.discriminator}\n"
+        desc = f"`{x}. `**Points:**`{points}` {member.name}#{member.discriminator}\n"
         final = final + desc
     em.description = final
     await channel.send(embed=em)
@@ -41,22 +41,22 @@ async def send_daily_embed(bot):
     main_winner, global_winner, cotd_winner = sql.get_winners()
 
     em = discord.Embed(
-        title="MAL Top Winners",
-        colour=0xeb8034,
+        title="MAL Today's Winners",
+        colour=discord.Colour.red(),
     )
     member = bot.get_user(main_winner)
     points = sql.get_main_counter(main_winner)
-    em.add_field(name="Main Chat Winner!",
+    em.add_field(name="Main Chat!",
                  value=f"Congratulations {member.mention}, you're our winner for main chat today!\nYou've sent the most {points} messages in #main chat", inline=False)
 
     member = bot.get_user(global_winner)
     points = sql.get_main_counter(global_winner)
-    em.add_field(name="Global Chat Winner!",
+    em.add_field(name="Global Chat !",
                  value=f"Congratulations {member.mention}, you're our winner for main chat today!\nYou've sent the most {points} messages in every chat", inline=False)
 
     member = bot.get_user(cotd_winner)
     points = sql.get_main_counter(cotd_winner)
-    em.add_field(name="Cotd Chat Winner!",
+    em.add_field(name="Cotd Chat !",
                  value=f"Congratulations {member.mention}, you're our winner for main chat today!\nYou've sent the most {points} messages in #cotd chat", inline=False)
     await channel.send(embed=em)
 
