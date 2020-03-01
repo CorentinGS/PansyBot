@@ -1,2 +1,5 @@
 utils/config.json
 !/.idea/
+*.pyc
+*.log
+modules/cogs/data/logs/logs.json

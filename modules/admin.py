@@ -31,7 +31,7 @@ class Admin(commands.Cog):
     async def load(self, ctx, cog: str = None):
         if cog:
             try:
-                self.bot.load_extension(f"modules.{cog}")
+                self.bot.load_extension(f"modules.cogs.{cog}")
                 await ctx.send(embed=func.Editable("Done", f"{cog} was successfully loaded.", "Cogs"),
                                delete_after=config.deltimer)
             except Exception as error:
@@ -48,7 +48,7 @@ class Admin(commands.Cog):
         if cog:
             if cog != "admin":
                 try:
-                    self.bot.unload_extension(f"modules.{cog}")
+                    self.bot.unload_extension(f"modules.cogs.{cog}")
                     await ctx.send(embed=func.Editable("Done", f"{cog} was successfully unloaded.", "Cogs"),
                                    delete_after=config.deltimer)
                 except Exception as error:
@@ -68,8 +68,8 @@ class Admin(commands.Cog):
     async def reload(self, ctx, cog: str = None):
         if cog:
             try:
-                self.bot.unload_extension(f"modules.{cog}")
-                self.bot.load_extension(f"modules.{cog}")
+                self.bot.unload_extension(f"modules.cogs.{cog}")
+                self.bot.load_extension(f"modules.cogs.{cog}")
                 await ctx.send(embed=func.Editable("Done", f"{cog} was successfully reloaded.", "Cogs"),
                                delete_after=config.deltimer)
             except Exception as error:
@@ -85,11 +85,11 @@ class Admin(commands.Cog):
     @commands.check(check.is_owner)
     async def list(self, ctx):
         cogs = []
-        for file in os.listdir("cogs"):
+        for file in os.listdir("modules/cogs"):
             if file.endswith(".py"):
                 name = file[:-3]
                 cogs.append(name)
-        await ctx.send(embed=func.Editable("All Cogs", ", ".join(cogs), "Cogs"), delete_after=config.deltimer)
+        await ctx.send(embed=func.Editable("All Cogs", "\n".join(cogs), "Cogs"), delete_after=config.deltimer)
 
     @commands.command()
     @commands.check(check.is_owner)
@@ -113,7 +113,7 @@ class Admin(commands.Cog):
         ramKilo = round(ramBytes / 1024, 2)
         ramMega = round(ramKilo / 1024, 2)
         ramGiga = round(ramMega / 1024, 2)
-        await ctx.send(embed=func.ENoFooter("RAM Usage", f"{ramMega}MB of RAM in use."))
+        await ctx.send(embed=func.ENoFooter("RAM Usage", f"{ramMega}MB of RAM in use."), delete_after=config.deltimer)
 
     @commands.command()
     @commands.check(check.is_admin)
@@ -204,6 +204,30 @@ class Admin(commands.Cog):
             await ctx.send(embed=func.Editable_E(f"Mention a user & access rank", "", "Access"),
                            delete_after=config.deltimer)
 
+    @commands.command()
+    @commands.check(check.is_admin)
+    async def lockdown(self, ctx, flag: str = None):
+        if not flag:
+            await ctx.send(embed=func.Editable_E("Lockdown Help Page",
+                                                 f"{ctx.prefix}lockdown - Locks all channels down from users with no roles\n\n**__Flags__** (Optional)\n**-s** - Starts the lockdown\n**-u** - Stops the lockdown",
+                                                 "Lockdown"), delete_after=15)
+
+        elif flag == '-s':
+            for channels in ctx.guild.channels:
+                role = discord.utils.get(ctx.guild.roles, name="@everyone")
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = False
+                await channels.set_permissions(role, overwrite=overwrite)
+            await ctx.send("Locked down all channels", delete_after=30)
+
+        elif flag == '-u':
+            for channels in ctx.guild.channels:
+                role = discord.utils.get(ctx.guild.roles, name="@everyone")
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = None
+                await channels.set_permissions(role, overwrite=overwrite)
+            await ctx.send("Lock Down Removed", delete_after=30)
+
     def has_access(self, user):
         if self.owner_check(user.id) or self.admin_check(user.id):
             return True
@@ -215,7 +239,7 @@ class Admin(commands.Cog):
         if not self.has_access(user):
             mydb = sql.createConnection()
             cur = mydb.cursor()
-            cur.execute(f"INSERT into `{config.mysql_db}`.`{table}` VALUES ('{user.name}', '{user.id}')")
+            cur.execute(f"INSERT into `{config.mysql_db}`.`{table}` VALUES ('{user.id}')")
             mydb.commit()
             return True
         else:
@@ -241,19 +265,9 @@ class Admin(commands.Cog):
         UID = str(UID)
         if sql.entry_check(UID, "id", "admins"):
             return True
-
-    @commands.command()
-    @commands.check(check.is_owner)
-    async def sqdel(self, ctx, table: str = None, selection: str = None, userid: str = None):
-        UID = str(userid)
-        if table and selection and userid:
-            mydb = sql.createConnection()
-            cur = mydb.cursor()
-            cur.execute(f"DELETE FROM `{config.mysql_db}`.`{table}` WHERE {selection}='{UID}';")
-            mydb.commit()
-            await ctx.send(f"Done. {userid} deleted from {table}", delete_after=10)
         else:
-            await ctx.send(embed=func.Editable_E("Please provide a table then a userid", "", "MySQL"), delete_after=10)
+            if sql.Entry_Check(UID, "id", "owners"):
+                return True
 
 
 def setup(bot):
